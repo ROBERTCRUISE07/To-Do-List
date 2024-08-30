@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+
+    <!-- CSS FILE -->
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #10e68c;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: linear-gradient(-35deg, #e60c0c, #f3bc07);
+            min-height: 10vh;
+            padding: 20px;
+            border-radius: 18px;
+            box-shadow: 0 0 10px rgba(255, 247, 0, 0.952);
+        }
+
+        .todo-header,
+        .todo-add,
+        .todo-list li {
+            margin-bottom: 20px;
+        }
+
+        .todo-add input[type="text"],
+        .todo-list button {
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .todo-add button {
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .todo-add input[type="text"] {
+            flex: 1;
+            border: 2px solid #ddd;
+            margin-right: 10px;
+
+        }
+
+        .todo-add button {
+            border: none;
+            background-color: #ff5900;
+            color: white;
+            cursor: pointer;
+        }
+
+        .todo-add button:hover,
+        .todo-list button:hover {
+            background-color: #09ec09cf;
+        }
+
+        .todo-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .todo-list li {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .todo-list li:last-child {
+            border-bottom: none;
+        }
+
+        .todo-list .task-complete {
+            text-decoration: line-through rgb(220, 235, 13);
+        }
+
+        .todo-add {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .todo-add input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .todo-add button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #0033ff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .todo-list button {
+            border: none;
+            background-color: #c64c0a;
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                background-color: transparent;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+        }
+
+        .star,
+        .delete-icon {
+            cursor: pointer;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+
+        .star {
+            color: #ccc;
+        }
+
+        .star.filled {
+            color: gold;
+        }
+
+        .complete-checkbox {
+            cursor: pointer;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            vertical-align: middle;
+            margin-left: auto;
+        }
+
+        .delete-icon {
+            color: #12e3f1;
+            border-radius: 30%;
+        }
+
+        .task-text {
+            flex-grow: 1;
+            word-break: break-word;
+            text-align: center;
+        }
+
+        .footer {
+            /* background-color: #0c022e; */
+            color: white;
+            text-align: center;
+            padding: 1px 0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .footer p {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+
+    <!-- HTML FILE -->
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="todo-header">
+            <h2>My Goals</h2>
+        </div>
+        <div class="todo-add">
+            <input type="text" id="taskInput" placeholder="My daily self progress...">
+            <button onclick="addTask()">Add Task</button>
+        </div>
+        <ul id="todoList" class="todo-list">
+        </ul>
+        <div id="completedTasksSection" style="display: none;">
+            <h3>Completed Tasks</h3>
+            <ul id="completedList" class="todo-list">
+            </ul>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Designed & Developed by Subham Kumar Prusty.</p>
+    </footer>
+
+    <!-- JavaScript FILE -->
+
+    <script>
+        // JavaScript FILE
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            loadTasks();
+        });
+
+        function addTask() {
+            var taskInput = document.getElementById('taskInput');
+            var task = taskInput.value.trim();
+            if (task) {
+                var listItem = createTaskItem(task);
+                document.getElementById('todoList').appendChild(listItem);
+                taskInput.value = '';
+                saveTasks();
+            }
+        }
+
+        function deleteTask(element) {
+            var listItem = element.closest('li');
+            listItem.remove();
+            saveTasks();
+        }
+
+        function completeTask(checkbox) {
+            var listItem = checkbox.closest('li');
+            var taskText = listItem.querySelector('.task-text');
+            taskText.classList.add('task-complete');
+            document.getElementById('completedList').appendChild(listItem);
+            // Remove event listeners to prevent undo and favorite actions
+            listItem.querySelector('.star').remove();
+            listItem.querySelector('.complete-checkbox').remove();
+            updateCompletedTasksSection();
+            saveTasks();
+        }
+
+        function updateCompletedTasksSection() {
+            var completedTasks = document.getElementById('completedList').children.length;
+            var completedTasksSection = document.getElementById('completedTasksSection');
+            if (completedTasks > 0) {
+                completedTasksSection.style.display = 'block';
+            } else {
+                completedTasksSection.style.display = 'none';
+            }
+        }
+
+        function toggleFavorite(starElement) {
+            // Prevent favoriting of completed tasks
+            var listItem = starElement.parentElement;
+            if (!listItem.querySelector('.task-complete')) {
+                var list = listItem.parentElement;
+                var isFavorite = starElement.classList.toggle('filled');
+                starElement.innerHTML = isFavorite ? '★' : '☆';
+                if (isFavorite) {
+                    list.insertBefore(listItem, list.firstChild);
+                }
+                saveTasks();
+            }
+        }
+
+        function createTaskItem(task) {
+            var listItem = document.createElement('li');
+            listItem.innerHTML = `
+      <span class="star" onclick="toggleFavorite(this)">☆</span>
+      <span class="task-text">${task}</span>
+      <input type="checkbox" class="complete-checkbox" onclick="completeTask(this)">
+      <span class="delete-icon" onclick="deleteTask(this)">X</span>
+    `;
+            return listItem;
+        }
+
+        function saveTasks() {
+            var tasks = [];
+            document.querySelectorAll('#todoList li').forEach((listItem) => {
+                var task = listItem.querySelector('.task-text').textContent;
+                var isFavorite = listItem.querySelector('.star').classList.contains('filled');
+                tasks.push({ task, isFavorite });
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            var tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach((taskItem) => {
+                var listItem = createTaskItem(taskItem.task);
+                if (taskItem.isFavorite) {
+                    listItem.querySelector('.star').classList.add('filled');
+                    listItem.querySelector('.star').innerHTML = '★';
+                }
+                document.getElementById('todoList').appendChild(listItem);
+            });
+        }
+
+    </script>
+</body>
+
+</html>    
